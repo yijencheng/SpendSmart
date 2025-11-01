@@ -111,8 +111,9 @@ class BackendAPIService {
         let baseURL = backendURL
         cachedBaseURL = baseURL
 
+        let isLocalhost = await BackendConfig.shared.isUsingLocalhost
         print("🔗 [iOS] Active Backend URL: \(baseURL)")
-        print("🏠 [iOS] Using localhost: \(BackendConfig.shared.isUsingLocalhost)")
+        print("🏠 [iOS] Using localhost: \(isLocalhost)")
 
         return baseURL
     }
@@ -489,7 +490,8 @@ class BackendAPIService {
     /// Get current backend status for debugging
     func getBackendStatus() async -> (url: String, isLocalhost: Bool) {
         let url = await getBaseURL()
-        return (url, BackendConfig.shared.isUsingLocalhost)
+        let isLocalhost = await BackendConfig.shared.isUsingLocalhost
+        return (url, isLocalhost)
     }
 
     /// Get the current authentication token

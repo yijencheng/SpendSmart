@@ -1182,7 +1182,25 @@ struct ImagePicker: UIViewControllerRepresentable {
 // Preview
 struct NewExpenseView_Previews: PreviewProvider {
     static var previews: some View {
-        NewExpenseView(onReceiptAdded: { _ in })
-            .preferredColorScheme(.dark)
+        Group {
+            // Empty state variations
+            NewExpenseView(onReceiptAdded: { _ in })
+                .environmentObject(createMockAppState())
+                .preferredColorScheme(.dark)
+                .previewDisplayName("Empty State - Dark")
+            
+            NewExpenseView(onReceiptAdded: { _ in })
+                .environmentObject(createMockAppState())
+                .preferredColorScheme(.light)
+                .previewDisplayName("Empty State - Light")
+        }
+    }
+    
+    static func createMockAppState() -> AppState {
+        let appState = AppState()
+        // Configure for fast preview (no network)
+        appState.useLocalStorage = true
+        appState.isGuestUser = true
+        return appState
     }
 }

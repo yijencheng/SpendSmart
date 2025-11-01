@@ -151,10 +151,18 @@ Once images are selected/captured, user taps **"Process Receipt"** button.
 
 The app goes through these UI states:
 
-1. **"Validating Receipt"** (1.5 seconds)
-2. **"Analyzing Receipt"** (0.5 seconds) 
-3. **"Saving to Database"** (varies based on image count)
-4. **"Complete!"** (0.4 seconds)
+1. **"Validating Receipt"** (1.5 seconds) - Initial validation UI state
+2. **"Analyzing Receipt"** (varies, ~3-10 seconds) - AI extraction from image
+3. **"Saving to Database"** (varies based on image count) - Uploads images, then saves receipt
+4. **"Complete!"** (0.4 seconds) - Final confirmation
+
+**Detailed Steps:**
+1. Validate receipt (UI state)
+2. Analyze receipt (AI extraction)
+3. Extract data from image (parse JSON)
+4. Upload images (if AI succeeded)
+5. Save receipt to database (with image URLs)
+6. Complete & update UI
 
 **Location:** `Views/NewExpenseView.swift` (lines 312-453)
 
@@ -219,11 +227,136 @@ progressStep = .analyzingReceipt
 4. **Validate & Create Receipt Model:**
    - Checks if `isValid: false` → returns `nil` (shows error)
    - If valid, creates `Receipt` object with extracted data
+   - **Important:** At this point, the receipt has NO image URLs yet
 
 **Key Functions:**
 - `extractDataFromImage()`: Main extraction function
 - `parseReceipt()`: Converts JSON string to `Receipt` model
 - `AIService.shared.generateContent()`: Calls backend API
+
+**What happens next:**
+- If receipt extraction fails → Process stops, shows error
+- If receipt extraction succeeds → Proceeds to **Step 4: Upload Images**
+
+---
+
+#### Step 4: Upload Images
+
+**Location:** `Views/NewExpenseView.swift` (lines 356-403)
+
+**When it happens:**
+- **Only after** AI processing succeeds (receipt extraction is valid)
+- If AI processing fails, image upload is **skipped** to avoid wasting bandwidth
+
+**UI State:**
+```swift
+progressStep = .savingToDatabase
+```
+
+**Process:**
+
+1. **Check AI Processing Result:**
+   ```swift
+   if receipt == nil {
+       // AI processing failed - skip image upload
+       return
+   }
+   ```
+
+2. **Upload Images** (after successful AI processing):
+   
+   **For Multiple Images:**
+   ```swift
+   var imageURLs: [String] = []
+   for image in capturedImages {
+       let imageURL = await uploadImage(image)
+       if imageURL != "placeholder_url" {
+           imageURLs.append(imageURL)
+       }
+   }
+   receipt?.image_urls = imageURLs
+   ```
+   
+   **For Single Image:**
+   ```swift
+   let imageURL = await uploadImage(selectedImage)
+   receipt?.image_urls = [imageURL]
+   ```
+
+3. **Image Upload Details:**
+   - Calls `ImageStorageService.shared.uploadImage(image)`
+   - Each image is uploaded **sequentially** (one after another)
+   - Progress indicator rotates during each upload
+   - Uploaded URLs are stored in `receipt.image_urls` array
+
+**Upload Flow:**
+```
+For each image:
+    ↓
+ImageStorageService.uploadImage()
+    ↓
+BackendAPIService.uploadImage()
+    ↓
+POST /api/images/upload
+    ↓
+Backend uploads to cloud storage (imgBB)
+    ↓
+Returns image URL
+    ↓
+Appended to receipt.image_urls
+```
+
+**Important Notes:**
+- **Images are uploaded AFTER AI processing succeeds** - prevents uploading invalid receipts
+- **Images are uploaded sequentially** - not in parallel (to manage bandwidth)
+- **Upload uses cloud-first strategy** - tries backend API, falls back to local storage if it fails
+- **All captured images are uploaded** - even if only the first was used for AI extraction
+- **Image URLs are added to receipt** - `receipt.image_urls` is populated after uploads complete
+
+**Image Processing:**
+- Images are resized to max 1000x1000px before upload (reduces upload size)
+- Converted to JPEG format with 80% quality
+- Encoded as base64 for API transmission
+
+---
+
+#### Step 5: Save Receipt to Database
+
+**Location:** `Views/DashboardView.swift` (lines 84-100)
+
+**When it happens:**
+- **After** all images are successfully uploaded
+- Receipt object now has complete data including image URLs
+
+**Process:**
+```swift
+// Receipt is complete with:
+// - Extracted data from AI
+// - Image URLs from upload
+// - User ID
+// - All metadata
+
+await insertReceipt(newReceipt: receipt)
+```
+
+**Storage Decision:**
+- **Guest Mode:** Saves to `LocalStorageService` (UserDefaults/files)
+- **Logged In:** Saves to Supabase database via `supabase.createReceipt()`
+
+---
+
+#### Step 6: Complete & UI Update
+
+**UI State:**
+```swift
+progressStep = .complete
+```
+
+**What happens:**
+- Progress indicator shows "Complete!"
+- Dashboard automatically refreshes to show new receipt
+- Receipt appears in charts and summaries
+- `NewExpenseView` dismisses and returns to dashboard
 
 ---
 
@@ -586,33 +719,51 @@ let receipts = try await supabase.fetchReceipts(page: 1, limit: 1000)
         ┌───────────────────────────────┐
         │  Parse JSON → Receipt Model     │
         │  parseReceipt()                 │
-        └───────────────────────────────┘
-                        ↓
-        ┌───────────────────────────────┐
-        │  Step 3: Saving to Database   │
-        │  Upload Images                 │
+        │  (Receipt created, NO URLs yet) │
         └───────────────────────────────┘
                         ↓
             ┌───────────┴───────────┐
             │                       │
     ┌───────▼────────┐      ┌───────▼────────┐
-    │ Image Upload   │      │ Image Upload    │
-    │ ImageStorage   │      │ ImageStorage    │
-    │ Service        │      │ Service         │
+    │  AI Success?   │      │  AI Failed?    │
+    │  receipt != nil│      │  receipt == nil│
     └───────┬────────┘      └───────┬────────┘
             │                       │
-    ┌───────▼────────┐      ┌───────▼────────┐
-    │ Backend API    │      │ Local Storage  │
-    │ /api/images/   │      │ (Fallback)     │
-    │ upload         │      │                │
-    └────────────────┘      └────────────────┘
-            │                       │
-            └───────────┬───────────┘
+            │                       ↓
+            │              ┌─────────────────────────┐
+            │              │  Show Error & Stop      │
+            │              │  (Skip image upload)    │
+            │              └─────────────────────────┘
+            │
+            ↓
+        ┌───────────────────────────────┐
+        │  Step 3: Upload Images        │
+        │  (Only if AI succeeded)       │
+        │  progressStep = .savingToDatabase │
+        └───────────────────────────────┘
                         ↓
-          ┌─────────────────────────┐
-          │  Save Receipt Data       │
-          │  insertReceipt()         │
-          └─────────────────────────┘
+        ┌───────────────────────────────┐
+        │  For each image (sequentially):│
+        │  ┌─────────────────────────┐  │
+        │  │ ImageStorageService      │  │
+        │  │  ↓                       │  │
+        │  │ BackendAPIService        │  │
+        │  │  ↓                       │  │
+        │  │ POST /api/images/upload  │  │
+        │  │  ↓                       │  │
+        │  │ Cloud Storage (imgBB)    │  │
+        │  │  ↓                       │  │
+        │  │ Returns image URL        │  │
+        │  └─────────────────────────┘  │
+        │                                │
+        │  Append URL to receipt.image_urls│
+        └───────────────────────────────┘
+                        ↓
+        ┌───────────────────────────────┐
+        │  Step 4: Save Receipt         │
+        │  (Receipt now has image URLs)  │
+        │  insertReceipt()               │
+        └───────────────────────────────┘
                         ↓
             ┌───────────┴───────────┐
             │                       │
@@ -668,13 +819,17 @@ let receipts = try await supabase.fetchReceipts(page: 1, limit: 1000)
 1. **User Action:** Taps "New Expense" → Opens `NewExpenseView`
 2. **Image Selection:** Camera or Gallery → Images stored in `capturedImages` array
 3. **Processing:** 
-   - AI extracts receipt data via backend API
-   - Images uploaded to cloud storage
-   - Receipt model created from AI response
+   - **Step 1:** Validate receipt (UI state)
+   - **Step 2:** AI extracts receipt data via backend API (analyzes first image)
+   - **Step 3:** Parse JSON response → Create Receipt model (no image URLs yet)
+   - **Step 4:** **Upload images** (only if AI succeeded, uploads ALL captured images)
+   - **Step 5:** Save receipt to database (with image URLs populated)
 4. **Storage:**
    - Guest mode → Local storage (UserDefaults/files)
    - Logged in → Supabase database (cloud)
 5. **UI Update:** Dashboard refreshes automatically
+
+**Key Point:** Images are uploaded **AFTER** AI processing succeeds. This prevents wasting bandwidth on invalid receipts. All captured images are uploaded sequentially, even if only the first image was used for AI extraction.
 
 **Key Technologies:**
 - **SwiftUI** for UI
