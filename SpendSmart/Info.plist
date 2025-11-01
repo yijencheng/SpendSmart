@@ -2,33 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>SpaceGrotesk-Variable.ttf</string>
-		<string>InstrumentSerif-Regular.ttf</string>
-		<string>InstrumentSans-Variable.ttf</string>
-		<string>InstrumentSerif-Italic.ttf</string>
-	</array>
-	<key>UILaunchScreen</key>
-	<dict/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>SpendSmart uses your location to show nearby stores and spending patterns on the map.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<!-- Development-only exceptions for localhost -->
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-			</dict>
 			<key>127.0.0.1</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
@@ -43,7 +22,15 @@
 				<key>NSExceptionMinimumTLSVersion</key>
 				<string>TLSv1.2</string>
 			</dict>
-			<!-- Production domain exceptions -->
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
 			<key>spend-smart-backend-iota.vercel.app</key>
 			<dict>
 				<key>NSExceptionMinimumTLSVersion</key>
@@ -53,5 +40,14 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>SpaceGrotesk-Variable.ttf</string>
+		<string>InstrumentSerif-Regular.ttf</string>
+		<string>InstrumentSans-Variable.ttf</string>
+		<string>InstrumentSerif-Italic.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
 </dict>
 </plist>

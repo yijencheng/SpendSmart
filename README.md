@@ -12,7 +12,7 @@
   </a>
 </div>
 
-
+This is a clone of [https://github.com/madebyshaurya/SpendSmart](https://github.com/madebyshaurya/SpendSmart)
 ---
 
 ## 🚀 Features
