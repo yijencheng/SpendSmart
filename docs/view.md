@@ -491,13 +491,6 @@ CustomAsyncImage(urlString: receipt.image_urls.first ?? "")
 
 ---
 
-## Styling & Theming
-
-For detailed information about styling patterns, custom components, fonts, colors, and theming, see:
-
-👉 **[Style Guide](ui/style.md)** - Complete guide to styling patterns, colors, fonts, and reusable UI components
-
----
 ## View File Structure
 
 ### Typical View Structure
@@ -842,6 +835,7 @@ struct MyView: View {
 - Check out `DashboardView.swift` for complex UI examples
 - Review `NewExpenseView.swift` for async patterns
 - See `HelperViews/` for reusable components
+- See **[Style Guide](ui/style.md)** for detailed information about styling patterns, olors, fonts, reusable UI components, fonts, colors, and theming
 
 ---
 
