@@ -122,23 +122,7 @@ The starting point of the app. Similar to `main()` in other languages.
 
 ---
 
-### 2. State Management (`AppState.swift`)
-
-The "brain" of the app. Stores all app-wide state that multiple views need.
-
-**Key Properties:**
-- `isLoggedIn`: Whether user is authenticated
-- `userEmail`: Current user's email
-- `isGuestUser`: Whether user is in guest mode
-- `useLocalStorage`: Whether to use local storage vs cloud
-
-**Key Concept:** `ObservableObject` + `@Published` makes this reactive. When properties change, all views using `@EnvironmentObject` automatically update.
-
-**Pattern:** Single Source of Truth - one place for all shared state.
-
----
-
-### 3. Views (SwiftUI)
+### 2. Views (SwiftUI)
 
 Views define what the user sees and handle user interactions.
 
@@ -159,6 +143,21 @@ ContentView (Root)
 - **`HistoryView`**: List of all receipts
 
 **Key Concept:** Views are declarative (you describe WHAT to show, not HOW to show it). SwiftUI handles the rendering automatically.
+
+---
+### 3. State Management (`AppState.swift`)
+
+The "brain" of the app. Stores all app-wide state that multiple views need.
+
+**Key Properties:**
+- `isLoggedIn`: Whether user is authenticated
+- `userEmail`: Current user's email
+- `isGuestUser`: Whether user is in guest mode
+- `useLocalStorage`: Whether to use local storage vs cloud
+
+**Key Concept:** `ObservableObject` + `@Published` makes this reactive. When properties change, all views using `@EnvironmentObject` automatically update.
+
+**Pattern:** Single Source of Truth - one place for all shared state.
 
 ---
 
@@ -250,63 +249,17 @@ Data structures that represent real-world entities.
 
 ---
 
-## iOS Concepts for Beginners
+## Next: Deep Dive into SwiftUI
 
-### 1. SwiftUI Property Wrappers
+Now that you understand the overall architecture, learn how the SwiftUI views are structured and implemented:
 
-Property wrappers are special keywords that add behavior to variables.
+👉 **[View Architecture & SwiftUI Guide](view.md)** - Detailed walkthrough of SwiftUI components, patterns, and UI implementation
 
-| Wrapper | Use Case | Example |
-|---------|----------|---------|
-| `@State` | Local state in a view | `@State private var isLoading = false` |
-| `@StateObject` | Creates and owns an ObservableObject | `@StateObject private var appState = AppState()` |
-| `@EnvironmentObject` | Reads shared state from parent | `@EnvironmentObject var appState: AppState` |
-| `@Published` | Properties that trigger UI updates | `@Published var isLoggedIn = false` |
+The view guide covers:
+- SwiftUI view hierarchy and navigation
+- Property wrappers (`@State`, `@Binding`, `@EnvironmentObject`)
+- Custom views and reusable components
+- Styling and theming
+- Common SwiftUI patterns used in SpendSmart
 
-### 2. ObservableObject & @Published
-
-Think of this like React's state management:
-
-```swift
-class AppState: ObservableObject {
-    @Published var isLoggedIn = false  // When this changes...
-}
-
-struct MyView: View {
-    @EnvironmentObject var appState: AppState
-    
-    var body: some View {
-        if appState.isLoggedIn {  // ...this view automatically updates
-            Text("Logged In!")
-        }
-    }
-}
-```
-
-### 3. async/await
-
-Used for asynchronous operations (network calls, file I/O).
-
-```swift
-func fetchReceipts() async {
-    let receipts = try await apiService.getReceipts()  // Wait for network call
-    // Continue after data is received
-}
-```
-
-**Key Point:** Functions that use `await` must be marked `async`, and called with `await`.
-
-### 4. Environment Objects
-
-A way to pass data down the view hierarchy without prop drilling.
-
-```swift
-// At top level
-ContentView()
-    .environmentObject(appState)  // Provide to all children
-
-// In any child view
-struct ChildView: View {
-    @EnvironmentObject var appState: AppState  // Access without passing
-}
-```
+---
