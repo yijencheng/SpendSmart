@@ -9,8 +9,6 @@
 3. [Project Structure](#project-structure)
 4. [Key Components](#key-components)
 5. [Data Flow](#data-flow)
-6. [iOS Concepts for Beginners](#ios-concepts-for-beginners)
-7. [Getting Started](#getting-started)
 
 ---
 
@@ -64,6 +62,60 @@ SpendSmart follows a **Model-View-Controller (MVC)** architecture with a **Servi
 2. **Single Source of Truth**: `AppState` manages all app-wide state
 3. **Reactive UI**: Views automatically update when state changes
 4. **Service Layer**: All external operations (API calls, storage) go through services
+
+### MVVM vs Current Pattern
+
+**Question:** Does SpendSmart use MVVM (Model-View-ViewModel)?
+
+**Answer:** No. SpendSmart uses **MVC + Services**, not MVVM.
+
+#### What is MVVM?
+
+MVVM (Model-View-ViewModel) is an architectural pattern where:
+- **View** displays UI
+- **ViewModel** contains presentation logic and transforms Models for the View
+- **Model** represents data
+- Flow: `View → ViewModel → Model`
+
+#### Why Not MVVM?
+
+SpendSmart doesn't use MVVM because:
+
+1. **No Separate ViewModels**: Views directly call Services, not ViewModels
+   ```swift
+   // Current pattern: View → Service
+   LocalStorageService.shared.getReceipts()
+   BackendAPIService.shared.createReceipt(...)
+   ```
+
+2. **Business Logic in Services**: Logic lives in Services (like `BackendAPIService`, `AIService`), not in ViewModels
+
+3. **AppState is Global State**: `AppState` acts as a global state container, not view-specific ViewModels
+
+#### Comparison Table
+
+| MVVM Pattern | SpendSmart (MVC + Services) |
+|-------------|----------------------------|
+| View → ViewModel → Model | View → Service → Model |
+| ViewModels contain presentation logic | Services contain business logic |
+| One ViewModel per View | Shared Services (singletons) |
+| Views bind to ViewModels | Views directly call services |
+
+#### What SpendSmart Has Instead
+
+**MVC + Services Pattern:**
+- **Models**: Data structures (`Receipt`, `ReceiptItem`)
+- **Views**: SwiftUI UI components
+- **Services**: Business logic layer (singleton pattern)
+- **AppState**: Global state management (ObservableObject)
+
+**Why This Works:**
+✅ **Clear separation**: Views focus on UI, Services handle logic  
+✅ **Reactive**: Uses SwiftUI's reactive patterns (`@Published`, `@EnvironmentObject`)  
+✅ **Testable**: Services can be mocked easily  
+✅ **Simple**: No extra ViewModel layer needed
+
+**Key Takeaway:** While SpendSmart uses reactive patterns similar to MVVM (ObservableObject, @Published), it follows MVC + Services architecture, not pure MVVM.
 
 ---
 
@@ -191,7 +243,7 @@ Data structures that represent real-world entities.
 **Key Models:**
 - **`Receipt`**: Represents a receipt with store info, items, totals
 - **`ReceiptItem`**: Individual item on a receipt
-- **`AppState`**: App-wide state (also acts as a ViewModel)
+- **`AppState`**: App-wide state management (ObservableObject)
 
 **Key Concept:** Models conform to `Codable` for easy conversion to/from JSON when communicating with APIs.
 
