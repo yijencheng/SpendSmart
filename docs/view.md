@@ -498,275 +498,48 @@ For detailed information about styling patterns, custom components, fonts, color
 👉 **[Style Guide](ui/style.md)** - Complete guide to styling patterns, colors, fonts, and reusable UI components
 
 ---
+## View File Structure
+
+### Typical View Structure
+
+```swift
+struct MyView: View {
+    // MARK: - Properties
+    @EnvironmentObject var appState: AppState
+    @State private var localState = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    // MARK: - Body
+    var body: some View {
+        VStack {
+            // View content
+        }
+        .onAppear {
+            // Initialization
+        }
+    }
+    
+    // MARK: - Helper Methods
+    func helperMethod() {
+        // Helper code
+    }
+}
+
+// MARK: - Preview
+struct MyView_Previews: PreviewProvider {
+    static var previews: some View {
+        MyView()
+            .environmentObject(AppState())
+    }
+}
+```
+---
 
 ## Common Patterns
 
-### 1. Async Data Loading
+For detailed information about common SwiftUI patterns used in SpendSmart, see:
 
-**Pattern:** Load data in `Task` blocks
-
-```swift
-struct DashboardView: View {
-    @State private var receipts: [Receipt] = []
-    @State private var isLoading = false
-    
-    var body: some View {
-        ScrollView {
-            if isLoading {
-                ProgressView("Loading...")
-            } else {
-                ForEach(receipts) { receipt in
-                    ReceiptCard(receipt: receipt)
-                }
-            }
-        }
-        .onAppear {
-            Task {
-                await fetchReceipts()
-            }
-        }
-    }
-    
-    func fetchReceipts() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        // Fetch data...
-    }
-}
-```
-
-**Key Points:**
-- Use `Task { }` for async operations in views
-- Update state on `MainActor` if needed
-- Show loading indicators during async operations
-
----
-
-### 2. Refreshable Lists
-
-**Pattern:** Pull-to-refresh functionality
-
-```swift
-ScrollView {
-    // Content
-}
-.refreshable {
-    await fetchReceipts()
-}
-```
-
-**Usage:** User can pull down to refresh data
-
----
-
-### 3. Empty States
-
-**Pattern:** Show helpful message when no data
-
-```swift
-if receipts.isEmpty {
-    EmptyStateView(
-        icon: "receipt",
-        title: "No Receipts",
-        message: "Start by adding your first receipt"
-    )
-} else {
-    List(receipts) { ... }
-}
-```
-
-**Component:** `Views/HelperViews/EmptyStateView.swift`
-
----
-
-### 4. Conditional Rendering
-
-**Pattern:** Show different UI based on conditions
-
-```swift
-var body: some View {
-    Group {
-        if isLoading {
-            ProgressView()
-        } else if receipts.isEmpty {
-            EmptyStateView(...)
-        } else {
-            List(receipts) { ... }
-        }
-    }
-}
-```
-
----
-
-### 5. Progress Indicators
-
-**Pattern:** Show progress during async operations
-
-**Example from NewExpenseView:**
-```swift
-if isAddingExpense, let step = progressStep {
-    ZStack {
-        // Progress circle
-        Circle()
-            .trim(from: 0.0, to: progress)
-            .stroke(style: StrokeStyle(...))
-        
-        // Status text
-        VStack {
-            Text(step.rawValue)
-            Text(step.description)
-        }
-    }
-}
-```
-
-**States:**
-- Validating Receipt
-- Analyzing Receipt
-- Saving to Database
-- Complete
-
----
-
-### 6. Alert & Toast Notifications
-
-**Alerts:**
-```swift
-.alert("Error", isPresented: $showAlert) {
-    Button("OK", role: .cancel) { }
-} message: {
-    Text(errorMessage)
-}
-```
-
-**Toasts:**
-```swift
-@StateObject private var toastManager = ToastManager()
-
-.toast(toastManager: toastManager)
-
-// Show toast
-toastManager.show(
-    message: "Receipt saved!",
-    type: .success
-)
-```
-
----
-
-### 7. Image Carousels
-
-**Pattern:** Swipeable image carousel for multiple images
-
-**Location:** `Views/NewExpenseView.swift`
-
-```swift
-TabView(selection: $currentImageIndex) {
-    ForEach(0..<capturedImages.count, id: \.self) { index in
-        Image(uiImage: capturedImages[index])
-            .resizable()
-            .scaledToFit()
-    }
-}
-.tabViewStyle(PageTabViewStyle(indexDisplayMode: .automatic))
-```
-
-**Use Case:** Multiple receipt images (long receipts split across photos)
-
----
-
-### 8. Charts & Data Visualization
-
-**Framework:** Swift Charts (iOS 16+)
-
-**Example - Monthly Bar Chart:**
-```swift
-Chart(monthlyData, id: \.month) { item in
-    BarMark(
-        x: .value("Month", item.month),
-        y: .value("Amount", item.total)
-    )
-    .cornerRadius(6)
-    .foregroundStyle(Color.blue.gradient)
-}
-```
-
-**Example - Donut Chart:**
-```swift
-Chart(categoryData, id: \.category) { item in
-    SectorMark(
-        angle: .value("Total", item.total),
-        innerRadius: .ratio(0.65),
-        angularInset: 2.0
-    )
-    .cornerRadius(12)
-    .foregroundStyle(by: .value("Category", item.category))
-}
-```
-
-**Location:** `Views/DashboardView.swift`
-
----
-
-## View Lifecycle
-
-### Lifecycle Methods
-
-#### onAppear
-
-**When:** View appears on screen
-
-**Use Case:**
-- Load data when view appears
-- Start animations
-- Initialize view state
-
-**Example:**
-```swift
-var body: some View {
-    List(receipts) { ... }
-        .onAppear {
-            Task {
-                await fetchReceipts()
-            }
-        }
-}
-```
-
-#### onDisappear
-
-**When:** View leaves screen
-
-**Use Case:**
-- Cleanup resources
-- Stop timers
-- Save state
-
-**Example:**
-```swift
-.onDisappear {
-    // Cleanup code
-}
-```
-
-#### onChange
-
-**When:** Observed value changes
-
-**Use Case:**
-- React to state changes
-- Trigger side effects
-
-**Example:**
-```swift
-.onChange(of: appState.isLoggedIn) { oldValue, newValue in
-    if newValue {
-        // User logged in
-    }
-}
-```
+👉 **[Common Patterns Guide](view/common_patterns.md)** - Complete guide to async data loading, refreshable lists, empty states, progress indicators, charts, and more
 
 ---
 
@@ -1060,65 +833,6 @@ struct MyView: View {
     }
 }
 ```
-
----
-
-## View File Structure
-
-### Typical View Structure
-
-```swift
-struct MyView: View {
-    // MARK: - Properties
-    @EnvironmentObject var appState: AppState
-    @State private var localState = false
-    @Environment(\.colorScheme) private var colorScheme
-    
-    // MARK: - Body
-    var body: some View {
-        VStack {
-            // View content
-        }
-        .onAppear {
-            // Initialization
-        }
-    }
-    
-    // MARK: - Helper Methods
-    func helperMethod() {
-        // Helper code
-    }
-}
-
-// MARK: - Preview
-struct MyView_Previews: PreviewProvider {
-    static var previews: some View {
-        MyView()
-            .environmentObject(AppState())
-    }
-}
-```
-
----
-
-## Summary
-
-### Key Takeaways
-
-1. **Declarative UI:** Describe what to show, not how
-2. **Property Wrappers:** Manage state and data flow
-3. **Reactive Updates:** UI automatically updates when state changes
-4. **Component-Based:** Build complex UIs from simple views
-5. **SwiftUI + UIKit:** Use UIKit for camera/media via bridges
-
-### Common Patterns
-
-- ✅ `@EnvironmentObject` for shared state
-- ✅ `.sheet()` for modal presentation
-- ✅ `Task { }` for async operations
-- ✅ Conditional rendering with `if/else`
-- ✅ Custom fonts and colors
-- ✅ Dark mode support
 
 ---
 
