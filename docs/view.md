@@ -576,41 +576,9 @@ Text("Hello")
 
 ### Styling Patterns
 
-#### Card Styling
+For detailed information about styling patterns, custom components, and theming, see:
 
-**Common Pattern:** Cards with rounded corners, shadows, and gradients
-
-```swift
-VStack { ... }
-    .padding()
-    .background(
-        RoundedRectangle(cornerRadius: 20)
-            .fill(colorScheme == .dark ? 
-                  Color.black.opacity(0.5) : 
-                  Color.white.opacity(0.9))
-            .shadow(color: colorScheme == .dark ? 
-                    Color.blue.opacity(0.2) : 
-                    Color.black.opacity(0.1), 
-                    radius: 8, x: 0, y: 4)
-    )
-```
-
-#### Button Styling
-
-**Pattern:** Gradient buttons with animations
-
-```swift
-Button("Action") { ... }
-    .padding(.vertical, 16)
-    .padding(.horizontal, 60)
-    .background(
-        RoundedRectangle(cornerRadius: 15)
-            .fill(Color.blue.gradient)
-            .shadow(color: Color.black.opacity(0.3), 
-                    radius: 10, x: 0, y: 5)
-    )
-    .foregroundColor(.white)
-```
+👉 **[Style Guide](ui/style.md)** - Complete guide to styling patterns, colors, fonts, and reusable UI components
 
 ---
 
