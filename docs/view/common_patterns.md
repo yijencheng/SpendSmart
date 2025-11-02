@@ -211,3 +211,95 @@ Chart(categoryData, id: \.category) { item in
 
 **Location:** `Views/DashboardView.swift`
 
+---
+
+## Common SwiftUI Patterns in SpendSmart
+
+### Pattern 1: State-Driven UI
+
+```swift
+struct MyView: View {
+    @State private var isLoading = false
+    @State private var data: [Item] = []
+    
+    var body: some View {
+        Group {
+            if isLoading {
+                ProgressView()
+            } else if data.isEmpty {
+                EmptyStateView()
+            } else {
+                List(data) { item in
+                    ItemRow(item: item)
+                }
+            }
+        }
+    }
+}
+```
+
+**Used in:** `DashboardView`, `HistoryView`, `NewExpenseView`
+
+---
+
+### Pattern 2: Sheet Presentation
+
+```swift
+struct ParentView: View {
+    @State private var showSheet = false
+    @State private var selectedItem: Item? = nil
+    
+    var body: some View {
+        Button("Show") {
+            showSheet = true
+        }
+        .sheet(isPresented: $showSheet) {
+            ChildView()
+        }
+        .sheet(item: $selectedItem) { item in
+            DetailView(item: item)
+        }
+    }
+}
+```
+
+**Used in:** `DashboardView` → `NewExpenseView`, `HistoryView` → `ReceiptDetailView`
+
+---
+
+### Pattern 3: Environment Object Injection
+
+```swift
+// Root level
+ContentView()
+    .environmentObject(appState)
+
+// Deep in hierarchy
+struct DeepChildView: View {
+    @EnvironmentObject var appState: AppState  // Automatically available
+}
+```
+
+**Used throughout:** All views that need `AppState`
+
+---
+
+### Pattern 4: Async Data Fetching
+
+```swift
+struct DataView: View {
+    @State private var items: [Item] = []
+    
+    var body: some View {
+        List(items) { ... }
+            .onAppear {
+                Task {
+                    items = await fetchItems()
+                }
+            }
+    }
+}
+```
+
+**Used in:** `DashboardView`, `HistoryView`
+

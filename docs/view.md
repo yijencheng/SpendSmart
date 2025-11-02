@@ -10,8 +10,7 @@
 4. [Navigation Patterns](#navigation-patterns)
 5. [Custom Views & Components](#custom-views--components)
 6. [Styling & Theming](#styling--theming)
-7. [Common Patterns](#common-patterns)
-8. [Best Practices](#best-practices)
+7. [Best Practices](#best-practices)
 
 ---
 
@@ -526,13 +525,6 @@ struct MyView_Previews: PreviewProvider {
     }
 }
 ```
----
-
-## Common Patterns
-
-For detailed information about common SwiftUI patterns used in SpendSmart, see:
-
-👉 **[Common Patterns Guide](view/common_patterns.md)** - Complete guide to async data loading, refreshable lists, empty states, progress indicators, charts, and more
 
 ---
 
@@ -677,158 +669,6 @@ var body: some View {
 
 ---
 
-## Common SwiftUI Patterns in SpendSmart
-
-### Pattern 1: State-Driven UI
-
-```swift
-struct MyView: View {
-    @State private var isLoading = false
-    @State private var data: [Item] = []
-    
-    var body: some View {
-        Group {
-            if isLoading {
-                ProgressView()
-            } else if data.isEmpty {
-                EmptyStateView()
-            } else {
-                List(data) { item in
-                    ItemRow(item: item)
-                }
-            }
-        }
-    }
-}
-```
-
-**Used in:** `DashboardView`, `HistoryView`, `NewExpenseView`
-
----
-
-### Pattern 2: Sheet Presentation
-
-```swift
-struct ParentView: View {
-    @State private var showSheet = false
-    @State private var selectedItem: Item? = nil
-    
-    var body: some View {
-        Button("Show") {
-            showSheet = true
-        }
-        .sheet(isPresented: $showSheet) {
-            ChildView()
-        }
-        .sheet(item: $selectedItem) { item in
-            DetailView(item: item)
-        }
-    }
-}
-```
-
-**Used in:** `DashboardView` → `NewExpenseView`, `HistoryView` → `ReceiptDetailView`
-
----
-
-### Pattern 3: Environment Object Injection
-
-```swift
-// Root level
-ContentView()
-    .environmentObject(appState)
-
-// Deep in hierarchy
-struct DeepChildView: View {
-    @EnvironmentObject var appState: AppState  // Automatically available
-}
-```
-
-**Used throughout:** All views that need `AppState`
-
----
-
-### Pattern 4: Async Data Fetching
-
-```swift
-struct DataView: View {
-    @State private var items: [Item] = []
-    
-    var body: some View {
-        List(items) { ... }
-            .onAppear {
-                Task {
-                    items = await fetchItems()
-                }
-            }
-    }
-}
-```
-
-**Used in:** `DashboardView`, `HistoryView`
-
----
-
-## SwiftUI vs UIKit
-
-### When SwiftUI is Used
-
-✅ **All user interfaces**
-✅ **Navigation**
-✅ **Lists and collections**
-✅ **Forms**
-✅ **Charts**
-
-### When UIKit is Used
-
-⚠️ **Camera interface** (`UIImagePickerController`)
-⚠️ **Photo picker** (`PHPickerViewController`)
-⚠️ **Image handling** (`UIImage`, `UIImageView`)
-⚠️ **Custom UI controls** (via `UIViewControllerRepresentable`)
-
-### Bridging UIKit to SwiftUI
-
-**Pattern:** `UIViewControllerRepresentable`
-
-```swift
-struct ImagePicker: UIViewControllerRepresentable {
-    @Binding var image: UIImage?
-    
-    func makeUIViewController(context: Context) -> PHPickerViewController {
-        var config = PHPickerConfiguration()
-        config.filter = .images
-        return PHPickerViewController(configuration: config)
-    }
-    
-    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        var parent: ImagePicker
-        
-        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            // Handle image selection
-        }
-    }
-}
-```
-
-**Usage:**
-```swift
-struct MyView: View {
-    @State private var image: UIImage?
-    
-    var body: some View {
-        ImagePicker(image: $image)
-    }
-}
-```
-
----
-
 ## Next Steps
 
 - Explore individual view files to see patterns in action
@@ -836,6 +676,7 @@ struct MyView: View {
 - Review `NewExpenseView.swift` for async patterns
 - See `HelperViews/` for reusable components
 - See **[Style Guide](ui/style.md)** for detailed information about styling patterns, olors, fonts, reusable UI components, fonts, colors, and theming
+- **[Common Patterns Guide](view/common_patterns.md)** - Complete guide to async data loading, refreshable lists, empty states, progress indicators, charts, and more
 
 ---
 
