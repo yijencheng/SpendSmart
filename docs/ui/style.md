@@ -50,8 +50,17 @@ Text("$123.45")
 
 **Location:** `Utils/Extensions.swift`
 
-Convert hex strings to SwiftUI colors:
+Extension that converts hex strings to SwiftUI colors:
 
+```swift
+extension Color {
+    init(hex: String) {
+        // Converts hex string to Color
+    }
+}
+```
+
+**Usage:**
 ```swift
 Color(hex: "3B82F6")  // Blue
 Color(hex: "6D28D9")  // Purple
@@ -60,16 +69,26 @@ Color(hex: "10B981")  // Green
 
 ### Dark Mode Support
 
+**Dark Mode & Light Mode:**
+
 Check color scheme and adapt colors:
 
 ```swift
 @Environment(\.colorScheme) private var colorScheme
 
+var foregroundColor: Color {
+    colorScheme == .dark ? .white : .black
+}
+
 Text("Hello")
     .foregroundColor(colorScheme == .dark ? .white : .black)
+```
 
-Rectangle()
-    .fill(colorScheme == .dark ? Color(hex: "282828") : Color(hex: "F0F0F0"))
+**Pattern:** Most views check `colorScheme` to adapt colors:
+
+```swift
+.foregroundColor(colorScheme == .dark ? .white : .black)
+.background(colorScheme == .dark ? Color(hex: "282828") : Color(hex: "F0F0F0"))
 ```
 
 ---
