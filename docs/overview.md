@@ -253,13 +253,5 @@ Data structures that represent real-world entities.
 
 Now that you understand the overall architecture, learn how the SwiftUI views are structured and implemented:
 
-👉 **[View Architecture & SwiftUI Guide](view.md)** - Detailed walkthrough of SwiftUI components, patterns, and UI implementation
-
-The view guide covers:
-- SwiftUI view hierarchy and navigation
-- Property wrappers (`@State`, `@Binding`, `@EnvironmentObject`)
-- Custom views and reusable components
-- Styling and theming
-- Common SwiftUI patterns used in SpendSmart
-
+👉 **[View Architecture](view.md)** - Detailed walkthrough of SwiftUI components, patterns, and UI implementation
 ---

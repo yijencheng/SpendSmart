@@ -675,8 +675,18 @@ var body: some View {
 - Check out `DashboardView.swift` for complex UI examples
 - Review `NewExpenseView.swift` for async patterns
 - See `HelperViews/` for reusable components
-- See **[Style Guide](ui/style.md)** for detailed information about styling patterns, olors, fonts, reusable UI components, fonts, colors, and theming
+
+### Related Documentation
+
+- **[Style Guide](ui/style.md)** - Detailed information about styling patterns, colors, fonts, reusable UI components, and theming
 - **[Common Patterns Guide](view/common_patterns.md)** - Complete guide to async data loading, refreshable lists, empty states, progress indicators, charts, and more
+
+### Next: Deep Dive into Services & Models
+
+Now that you understand how SwiftUI views work, learn about the services layer and data models:
+
+👉 **[Services Architecture](services.md)** - Detailed walkthrough of services, business logic, and external operations  
+👉 **[Data Models](models.md)** - Deep dive into data structures, Codable, and model relationships
 
 ---
 
